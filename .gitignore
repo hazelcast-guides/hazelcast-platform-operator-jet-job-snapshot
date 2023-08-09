@@ -13,3 +13,5 @@ target/
 node_modules/
 local-docs/
 package-lock.json
+
+.vscode
