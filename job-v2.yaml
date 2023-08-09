@@ -8,6 +8,7 @@ spec:
   state: Running
   jarName: jet-pipelines-1.0-SNAPSHOT.jar
   mainClass: org.examples.jet.snapshot.JobV2
+  initialSnapshotResourceName: snapshot-transaction
   bucketConfig:
-    bucketURI: '<BUCKET-URI>'
-    secretName: '<SECRET-NAME>'
+    bucketURI: gs://snapshot-tutorial
+    secretName: gcp-sa
