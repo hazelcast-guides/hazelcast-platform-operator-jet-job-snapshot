@@ -1,0 +1,26 @@
+= Saving the State of Jet Job with Hazelcast Platform Operator
+// Add required variables
+:page-layout: tutorial
+:page-product: operator
+:page-categories: Cloud Native
+:page-lang: go, java, node, python
+:page-enterprise: true
+:page-est-time: 10 mins
+:github-directory: https://github.com/hazelcast-guides/hazelcast-platform-operator-jet-job-snapshot
+:description: Learn how to save the state of your data pipelines with Hazelcast Platform Operator.
+
+{description}
+
+== Context
+
+In this tutorial, you will see how to save the state of your data pipelines and how to create new data pipelines which are initialized from the saved state.
+
+== Before you Begin
+
+You need the following:
+
+* Running https://kubernetes.io/[Kubernetes] cluster
+* Kubernetes command-line tool, https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl]
+* Maven command-line tool, https://maven.apache.org/download.cgi[mvn]
+* Deployed xref:operator:ROOT:index.adoc[Hazelcast Platform Operator version 5.8 or above]
+* Blob storage and access credentials on one of the following cloud providers: https://aws.amazon.com/s3/[AWS], https://cloud.google.com/storage/[GCP], https://azure.microsoft.com/en-us/services/storage/blobs/[Azure]
