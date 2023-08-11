@@ -10,5 +10,5 @@ spec:
   mainClass: org.examples.jet.snapshot.JobV2
   initialSnapshotResourceName: snapshot-transaction
   bucketConfig:
-    bucketURI: gs://snapshot-tutorial
-    secretName: gcp-sa
+    bucketURI: '<BUCKET-URI>'
+    secretName: '<SECRET-NAME>'
