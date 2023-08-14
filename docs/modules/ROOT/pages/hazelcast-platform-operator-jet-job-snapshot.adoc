@@ -276,7 +276,7 @@ spec:
 EOF
 ----
 
-This data pipeline will seamlessly resume processing entries from the state at which we exported the snapshot. In this way, we achieve to process each transaction entries only once within the pipeline.
+This data pipeline, named 'job-transaction-v2', will seamlessly resume processing entries from the state at which we exported the snapshot. In this way, we achieve to process each transaction entries only once within the pipeline.
 
 . You can check the status of the new Data Pipeline.
 
@@ -286,6 +286,17 @@ This data pipeline will seamlessly resume processing entries from the state at w
 $ kubectl get jetjob job-transaction-v2
 NAME                 STATUS    ID                   SUBMISSIONTIME         COMPLETIONTIME
 job-transaction-v2   Running   741650518446702593   2023-08-09T13:34:22Z
+----
+
+When you review the logs after submitting the pipeline, you will see the logs of only the transaction entries which are put after the time when we exported the Snapshot. Which means the new version of the transaction pipeline, named ''job-transaction-v2', won't executes the transactions which are already executed by the first version of the pipeline named ''job-transaction-v1'.
+
++
+[source]
+----
+The transaction 'transaction-4' is being executed in 'job-v2'
+{"time":"2023-08-09T12:45:11,364", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v2/Log Transactions#0] [Job V2] transaction:'transaction-4' payload:'{\"description\": \"Movie Tickets\", \"amount\": 25.00, \"transactionDate\": \"2023-08-12T18:45:00Z\"}' "}
+The transaction 'transaction-5' is being executed in 'job-v2'
+{"time":"2023-08-09T12:47:53,791", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v2/Log Transactions#0] [Job V2] transaction:'transaction-5' payload:'{\"description\": \"Gasoline Refill\", \"amount\": 50.30, \"transactionDate\": \"2023-08-13T09:00:00Z\"}' "}
 ----
 
 If the new version of the Data Pipeline, named 'job-transaction-v2', is not initialized from the exported Snapshot 'snapshot-transaction', it will begin data processing from the start of the map. This is undesirable, as we have already processed certain transaction entries in the previous version of the pipeline.
