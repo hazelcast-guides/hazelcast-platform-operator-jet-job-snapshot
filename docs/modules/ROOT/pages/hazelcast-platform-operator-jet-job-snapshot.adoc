@@ -32,7 +32,7 @@ Make sure you have the following:
 * Deployed xref:operator:ROOT:index.adoc[Hazelcast Platform Operator version 5.8 or above]
 * Blob storage and access credentials on one of the following cloud providers: https://aws.amazon.com/s3/[AWS], https://cloud.google.com/storage/[GCP], https://azure.microsoft.com/en-us/services/storage/blobs/[Azure]
 
-If you're unsure about how to submit JetJobs using the Hazelcast Platform Operator, it's recommended to start by following the xref:tutorials:ROOT:hazelcast-platform-operator-jet.adoc[Data Pipeline] tutorial first. That tutorial also covers the steps for deploying a custom Jet pipeline JAR to Cloud storage and provides guidance on managing JetJob resources using the Hazelcast Platform Operator.
+If you're unsure about how to submit JetJobs using the Hazelcast Platform Operator, it's recommended to start by following the xref:tutorials:ROOT:hazelcast-platform-operator-jet.adoc[Jet] tutorial first. That tutorial also covers the steps for deploying a custom Jet pipeline JAR to Cloud storage and provides guidance on managing JetJob resources using the Hazelcast Platform Operator.
 
 == Step 1. Start the Hazelcast Cluster
 
@@ -83,11 +83,11 @@ hazelcast   Running   1/1
 
 == Step 2. Run the Data Pipeline
 
-In the tutorial, we will walk through a practical example involving a 'transaction' map designed to store crucial transaction data. Our Hazelcast Jet setup will seamlessly retrieve these transactions from the map and process them. Firstly, we will submit a data pipeline that processes transactions from the 'transaction' map. To maintain simplicity in the example, the pipeline will only log the transactions. Then we will explore the process of saving the state of the data pipeline using the Hazelcast Platform Operator.
+In the tutorial, we will walk through a practical example involving a 'transaction' map designed to store crucial transaction data. Our Hazelcast Jet setup will seamlessly retrieve these transactions from the map and process them. Firstly, we will submit a Jet Job that processes transactions from the 'transaction' map. To maintain simplicity in the example, the pipeline will only log the transactions. Then we will explore the process of saving the state of the Jet Job using the Hazelcast Platform Operator.
 
-Before submitting the Data Pipelines, you need to create a map from which the Data Pipeline will fetch the records. To utilize the map as a data source for a Data Pipeline, it's necessary to enable the Event Journal in the map.
+Before submitting the Jet Job, you need to create a map from which the Jet Job will fetch the records. To utilize the map as a data source for a Jet Job, it's necessary to enable the Event Journal in the map.
 
-. Execute the following command to create the Map, which will serve as the source for the Data Pipeline
+. Execute the following command to create the Map, which will serve as the source for the Jet Job.
 
 +
 [source, shell]
@@ -106,7 +106,7 @@ EOF
 
 NOTE: It is important to configure the event journal in the map if it is being used as a data source for a Data Pipeline.
 
-You are all set to submit the data pipeline that processes transactions from the map. Below is the Java source code for the pipeline we've created in this tutorial. This pipeline simply retrieves transaction entries from the map and logs them for the sake of simplicity. If you are unfamiliar with submitting JetJobs with the Hazelcast Platform Operator, you can also refer to xref:tutorials:ROOT:hazelcast-platform-operator-jet.adoc[Jet Tutorial].
+You are all set to submit the Jet Job that processes transactions from the map. Below is the Java source code for the pipeline we've created in this tutorial. This pipeline simply retrieves transaction entries from the map and logs them for the sake of simplicity. If you are unfamiliar with submitting JetJobs with the Hazelcast Platform Operator, you can also refer to xref:tutorials:ROOT:hazelcast-platform-operator-jet.adoc[Jet Tutorial].
 
 [source, java]
 ----
@@ -131,7 +131,7 @@ public static void main(String[] args) {
 }
 ----
 
-. Run the following command to submit the Data Pipeline.
+. Run the following command to submit the Jet Job.
 
 +
 [source, shell]
@@ -163,7 +163,7 @@ NAME             STATUS    ID                   SUBMISSIONTIME         COMPLETIO
 transaction-v1   Running   741632319877545985   2023-08-09T12:22:04Z
 ----
 
-As new entries are added to the 'transaction' map, the data pipeline will automatically retrieve and process them. To observe the executed transactions, examine the logs. In the provided log example below, three transactions are processed with keys 'transaction-1', 'transaction-2', and 'transaction-3'. The entry values are not a concern in this context.
+As new entries are added to the 'transaction' map, the Jet Job will automatically retrieve and process them. To observe the executed transactions, examine the logs. In the provided log example below, three transactions are processed with keys 'transaction-1', 'transaction-2', and 'transaction-3'. The entry values are not a concern in this context.
 
 [source, yaml]
 ----
@@ -179,7 +179,7 @@ The transaction 'transaction-3' is being executed in 'job-v1'
 
 In data pipelines, saving and using computation process states is vital for accurate and reliable data processing. Jet's Snapshot feature lets you save and restore these processing states. A snapshot captures the state of a running Jet job at a specific time, giving you a reliable record of ongoing computations and processed data.
 
-. Run the following command to export a Snapshot from the Data Pipeline.
+. Run the following command to export a Snapshot from the Jet Job.
 
 +
 [source, shell]
@@ -195,7 +195,7 @@ spec:
 EOF
 ----
 
-. Run the following command to check the status of the exported JetJobSnapshot:
+. Run the following command to check the status of the exported JetJobSnapshot.
 
 +
 [source, shell]
@@ -205,10 +205,10 @@ NAME          STATE      CREATIONTIME
 transaction   Exported   2023-08-09T13:07:51Z
 ----
 
-NOTE: By configuring the 'spec.cancelJob' field to 'true', the data pipeline named 'transaction-v1' will be canceled after applying the JetJobSnapshot. This setting is particularly useful before submitting a new version of the active data pipeline. With this approach, the snapshot will halt the ongoing job after preserving its current state.
+NOTE: By configuring the 'spec.cancelJob' field to 'true', the Jet Job named 'transaction-v1' will be canceled after applying the JetJobSnapshot. This setting is particularly useful before submitting a new version of the existing data pipeline. With this approach, the snapshot will halt the ongoing job after preserving its current state.
 
 
-. The data pipeline should not be in the Running state anymore. You can verify this by using the following command:
+. The Jet Job should not be in the Running state anymore. You can verify this by using the following command.
 
 +
 [source, shell]
@@ -222,7 +222,7 @@ transaction-v1   ExecutionFailed   741632319877545985   2023-08-09T12:22:04Z   2
 
 When creating a new version of a data pipeline, it's essential to initialize the new pipeline from the current state of the old one. Without this initialization, the new pipeline would start with an empty state and lack information about its predecessor's state. This situation could result in data loss or duplicate processing, which is not desirable, particularly for critical pipelines. To ensure proper initialization and prevent these issues, we can rely on the Snapshot.
 
-Continuing with the example, we will now move forward to create a new version of the previous data pipeline. To maintain simplicity in the example, the new version so similar to the old one. It takes entries from the 'transaction' map and logs them.
+Continuing with the example, we will now move forward to create a new version of the previous Jet Job. To maintain simplicity in the example, the new version so similar to the old one. It takes entries from the 'transaction' map and logs them.
 
 [source, java]
 ----
@@ -247,7 +247,7 @@ public static void main(String[] args) {
 }
 ----
 
-. Differing from the previous JetJob definition, we will set the 'initialSnapshotResourceName' field to refer to the Snapshot exported in the preceding step. Execute the following command to submit the new Data Pipeline.
+. Differing from the previous JetJob definition, we will set the 'initialSnapshotResourceName' field to refer to the Snapshot exported in the preceding step. Execute the following command to submit the new Jet Job.
 
 +
 [source, shell]
@@ -269,7 +269,7 @@ spec:
 EOF
 ----
 
-This data pipeline, named 'transaction-v2', will seamlessly resume processing entries from the state at which we exported the snapshot. In this way, we achieve to process each transaction entries only once within the pipeline.
+This Jet Job, named 'transaction-v2', will seamlessly resume processing entries from the state at which we exported the snapshot. In this way, we achieve to process each transaction entries only once within the pipeline.
 
 . Now check the new Jet job status
 
@@ -291,13 +291,13 @@ The transaction 'transaction-5' is being executed in 'job-v2'
 {"time":"2023-08-09T12:47:53,791", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v2/Log Transactions#0] [Job V2] transaction:'transaction-5' payload:'{\"description\": \"Gasoline Refill\", \"amount\": 50.30, \"transactionDate\": \"2023-08-13T09:00:00Z\"}' "}
 ----
 
-If the new version of the Data Pipeline, named 'transaction-v2', is not initialized from the exported Snapshot 'transaction', it will begin data processing from the start of the map. This is undesirable, as we have already processed certain transaction entries in the previous version of the pipeline.
+If the new version of the Jet Job, named 'transaction-v2', is not initialized from the exported Snapshot 'transaction', it will begin data processing from the start of the map. This is undesirable, as we have already processed certain transaction entries in the previous version of the pipeline.
 
 NOTE: If want to make your Snapshots to be persistent against outages or restarts, it would be enough to create a Hazelcast cluster with persistence enabled.
 
 == Summary
 
-Saving the current state of your data pipeline and initializing new pipelines from that snapshot could be essential in same cases as demonstrated the example in the tutorial. We have covered the process of managing the state of your Data Pipelines using the Hazelcast Platform Operator.
+Saving the current state of your data pipeline and initializing new pipelines from that snapshot could be essential in same cases as demonstrated the example in the tutorial. We have covered the process of managing the state of your data pipelines using the Hazelcast Platform Operator.
 
 == See Also
 
