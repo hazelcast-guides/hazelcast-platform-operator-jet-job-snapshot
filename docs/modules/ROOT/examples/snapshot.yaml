@@ -1,8 +1,7 @@
 apiVersion: hazelcast.com/v1alpha1
 kind: JetJobSnapshot
 metadata:
-  name: snapshot-transaction
-spec:
   name: transaction
+spec:
   jetJobResourceName: job-transaction-v1
   cancelJob: true

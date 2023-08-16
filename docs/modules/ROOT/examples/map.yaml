@@ -4,6 +4,5 @@ metadata:
   name: transaction
 spec:
   hazelcastResourceName: hazelcast
-  name: transaction
   eventJournal:
     capacity: 9000
