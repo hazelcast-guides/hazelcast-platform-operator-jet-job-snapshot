@@ -38,12 +38,12 @@ If you're unsure about how to submit JetJobs using the Hazelcast Platform Operat
 
 Since Snapshot is an exclusive feature of the enterprise version, you'll need to set up an Enterprise Hazelcast cluster. This is why it's necessary to create a License Key secret first.
 
-. Execute the following command to create a Hazelcast License Key secret, which will be referenced in the Hazelcast resource definition later:
+. Run the following command to create a secret with your link:http://trialrequest.hazelcast.com/[Hazelcast Enterprise License], which will be referenced in the Hazelcast resource definition later:
 
 +
 [source, shell]
 ----
-kubectl create secret generic <SECRET-NAME> --from-literal=license-key=<LICENSE-KEY>
+kubectl create secret generic hazelcast-license-key --from-literal=license-key=<hz-license-key>
 ----
 +
 
@@ -61,7 +61,7 @@ spec:
   clusterSize: 1
   repository: 'docker.io/hazelcast/hazelcast-enterprise'
   version: '5.3.0'
-  licenseKeySecretName: <LICENSE-KEY-SECRET-NAME>
+  licenseKeySecretName: hazelcast-license-key
   jet:
     enabled: true
     resourceUploadEnabled: true
@@ -132,7 +132,7 @@ public static void main(String[] args) {
 }
 ----
 
-. Execute the following command to submit the Data Pipeline.
+. Run the following command to submit the Data Pipeline.
 
 +
 [source, shell]
@@ -177,7 +177,7 @@ The transaction 'transaction-3' is being executed in 'job-v1'
 {"time":"2023-08-09T12:33:44,997", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v1/Log Transactions#0] [Job V1] transaction:'transaction-3' payload:'{\"description\": \"Restaurant Dinner\", \"amount\": 120.50, \"transactionDate\": \"2023-08-11T20:00:00Z\"}' "}
 ----
 
-== Step 3. Saving the state of Data Pipeline
+== Step 3. Save the state of the Data Pipeline
 
 In data pipelines, saving and using computation process states is vital for accurate and reliable data processing. Jet's Snapshot feature lets you save and restore these processing states. A snapshot captures the state of a running Jet job at a specific time, giving you a reliable record of ongoing computations and processed data.
 
@@ -198,7 +198,7 @@ spec:
 EOF
 ----
 
-. Use the following command to check the status of the exported JetJobSnapshot:
+. Run the following command to check the status of the exported JetJobSnapshot:
 
 +
 [source, shell]
@@ -275,7 +275,7 @@ EOF
 
 This data pipeline, named 'job-transaction-v2', will seamlessly resume processing entries from the state at which we exported the snapshot. In this way, we achieve to process each transaction entries only once within the pipeline.
 
-. You can check the status of the new Data Pipeline.
+. Now check the new Jet job status
 
 +
 [source, shell]
