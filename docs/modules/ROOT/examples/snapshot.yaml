@@ -3,5 +3,5 @@ kind: JetJobSnapshot
 metadata:
   name: transaction
 spec:
-  jetJobResourceName: job-transaction-v1
+  jetJobResourceName: transaction-v1
   cancelJob: true

@@ -47,24 +47,12 @@ kubectl create secret generic hazelcast-license-key --from-literal=license-key=<
 ----
 +
 
-. Run the following command to create a Hazelcast cluster with the Jet engine configured:
+. Run the following command to create a Hazelcast cluster with the Jet engine configured.
 
-+
-[source, shell]
+[source, yaml]
 ----
-cat <<EOF | kubectl apply -f -
-apiVersion: hazelcast.com/v1alpha1
-kind: Hazelcast
-metadata:
-  name: hazelcast
-spec:
-  clusterSize: 1
-  repository: 'docker.io/hazelcast/hazelcast-enterprise'
-  version: '5.3.0'
-  licenseKeySecretName: hazelcast-license-key
-  jet:
-    enabled: true
-    resourceUploadEnabled: true
+kubectl apply -f - <<EOF
+include::ROOT:example$/hazelcast.yaml[]
 EOF
 ----
 
@@ -90,17 +78,10 @@ Before submitting the Jet Job, you need to create a map from which the Jet Job w
 . Execute the following command to create the Map, which will serve as the source for the Jet Job.
 
 +
-[source, shell]
+[source, yaml]
 ----
-cat <<EOF | kubectl apply -f -
-apiVersion: hazelcast.com/v1alpha1
-kind: Map
-metadata:
-  name: transaction
-spec:
-  hazelcastResourceName: hazelcast
-  eventJournal:
-    capacity: 9000
+kubectl apply -f - <<EOF
+include::ROOT:example$/map.yaml[]
 EOF
 ----
 
@@ -110,45 +91,17 @@ You are all set to submit the Jet Job that processes transactions from the map. 
 
 [source, java]
 ----
-public static void main(String[] args) {
-    var p = Pipeline.create();
-    var transactionSource = Sources.mapJournal("transaction", JournalInitialPosition.START_FROM_OLDEST);
-    var loggerSink = Sinks.logger();
-    p.readFrom(transactionSource)
-            .withIngestionTimestamps()
-            .setName("Emit Transactions")
-            .map(e -> {
-                System.out.printf("The transaction '%s' is being executed in 'job-v1'\n", e.getKey());
-                // execute the transaction
-                return String.format("[Job V1] transaction:'%s' payload:'%s'", e.getKey(), e.getValue());
-            })
-            .setName("Apply Transactions")
-            .writeTo(loggerSink)
-            .setName("Log Transactions");
-
-    HazelcastInstance hz = Hazelcast.bootstrappedInstance();
-    hz.getJet().newJob(p);
+include::ROOT:example$/jet-pipelines/src/main/java/org/examples/jet/snapshot/JobV1.java[]
 }
 ----
 
 . Run the following command to submit the Jet Job.
 
 +
-[source, shell]
+[source, yaml]
 ----
-cat <<EOF | kubectl apply -f -
-apiVersion: hazelcast.com/v1alpha1
-kind: JetJob
-metadata:
-  name: transaction-v1
-spec:
-  hazelcastResourceName: hazelcast
-  state: Running
-  jarName: jet-pipelines-1.0-SNAPSHOT.jar
-  mainClass: org.examples.jet.snapshot.JobV1
-  bucketConfig:
-    bucketURI: '<BUCKET-URI>'
-    secretName: '<SECRET-NAME>'
+kubectl apply -f - <<EOF
+include::ROOT:example$/job-v1.yaml[]
 EOF
 ----
 
@@ -182,16 +135,10 @@ In data pipelines, saving and using computation process states is vital for accu
 . Run the following command to export a Snapshot from the Jet Job.
 
 +
-[source, shell]
+[source, yaml]
 ----
-cat <<EOF | kubectl apply -f -
-apiVersion: hazelcast.com/v1alpha1
-kind: JetJobSnapshot
-metadata:
-  name: transaction
-spec:
-  jetJobResourceName: transaction-v1
-  cancelJob: true
+kubectl apply -f - <<EOF
+include::ROOT:example$/snapshot.yaml[]
 EOF
 ----
 
@@ -226,46 +173,16 @@ Continuing with the example, we will now move forward to create a new version of
 
 [source, java]
 ----
-public static void main(String[] args) {
-    var p = Pipeline.create();
-    var transactionSource = Sources.mapJournal("transaction", JournalInitialPosition.START_FROM_OLDEST);
-    var loggerSink = Sinks.logger();
-    p.readFrom(transactionSource)
-            .withIngestionTimestamps()
-            .setName("Emit Transactions")
-            .map(e -> {
-                System.out.printf("The transaction '%s' is being executed in 'job-v2'\n", e.getKey());
-                // execute the transaction
-                return String.format("[Job V2] transaction:'%s' payload:'%s'", e.getKey(), e.getValue());
-            })
-            .setName("Apply Transactions")
-            .writeTo(loggerSink)
-            .setName("Log Transactions");
-
-    HazelcastInstance hz = Hazelcast.bootstrappedInstance();
-    hz.getJet().newJob(p);
-}
+include::ROOT:example$/jet-pipelines/src/main/java/org/examples/jet/snapshot/JobV2.java[]
 ----
 
 . Differing from the previous JetJob definition, we will set the 'initialSnapshotResourceName' field to refer to the Snapshot exported in the preceding step. Execute the following command to submit the new Jet Job.
 
 +
-[source, shell]
+[source, yaml]
 ----
-cat <<EOF | kubectl apply -f -
-apiVersion: hazelcast.com/v1alpha1
-kind: JetJob
-metadata:
-  name: transaction-v2
-spec:
-  hazelcastResourceName: hazelcast
-  state: Running
-  jarName: jet-pipelines-1.0-SNAPSHOT.jar
-  mainClass: org.examples.jet.snapshot.JobV2
-  initialSnapshotResourceName: transaction
-  bucketConfig:
-    bucketURI: '<BUCKET-URI>'
-    secretName: '<SECRET-NAME>'
+kubectl apply -f - <<EOF
+include::ROOT:example$/job-v2.yaml[]
 EOF
 ----
 
