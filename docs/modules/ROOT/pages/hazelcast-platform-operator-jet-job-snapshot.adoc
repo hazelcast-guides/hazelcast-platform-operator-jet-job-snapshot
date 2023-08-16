@@ -99,7 +99,6 @@ metadata:
   name: transaction
 spec:
   hazelcastResourceName: hazelcast
-  name: transaction
   eventJournal:
     capacity: 9000
 EOF
@@ -141,9 +140,8 @@ cat <<EOF | kubectl apply -f -
 apiVersion: hazelcast.com/v1alpha1
 kind: JetJob
 metadata:
-  name: job-transaction-v1
-spec:
   name: transaction-v1
+spec:
   hazelcastResourceName: hazelcast
   state: Running
   jarName: jet-pipelines-1.0-SNAPSHOT.jar
@@ -160,9 +158,9 @@ EOF
 +
 [source, shell]
 ----
-$ kubectl get jetjob job-transaction-v1
-NAME                 STATUS    ID                   SUBMISSIONTIME         COMPLETIONTIME
-job-transaction-v1   Running   741632319877545985   2023-08-09T12:22:04Z
+$ kubectl get jetjob transaction-v1
+NAME             STATUS    ID                   SUBMISSIONTIME         COMPLETIONTIME
+transaction-v1   Running   741632319877545985   2023-08-09T12:22:04Z
 ----
 
 As new entries are added to the 'transaction' map, the data pipeline will automatically retrieve and process them. To observe the executed transactions, examine the logs. In the provided log example below, three transactions are processed with keys 'transaction-1', 'transaction-2', and 'transaction-3'. The entry values are not a concern in this context.
@@ -190,10 +188,9 @@ cat <<EOF | kubectl apply -f -
 apiVersion: hazelcast.com/v1alpha1
 kind: JetJobSnapshot
 metadata:
-  name: snapshot-transaction
-spec:
   name: transaction
-  jetJobResourceName: job-transaction-v1
+spec:
+  jetJobResourceName: transaction-v1
   cancelJob: true
 EOF
 ----
@@ -203,12 +200,12 @@ EOF
 +
 [source, shell]
 ----
-$ kubectl get jetjobsnapshot snapshot-transaction
-NAME                   STATE      CREATIONTIME
-snapshot-transaction   Exported   2023-08-09T13:07:51Z
+$ kubectl get jetjobsnapshot transaction
+NAME          STATE      CREATIONTIME
+transaction   Exported   2023-08-09T13:07:51Z
 ----
 
-NOTE: By configuring the 'spec.cancelJob' field to 'true', the data pipeline named 'job-transaction-v1' will be canceled after applying the JetJobSnapshot. This setting is particularly useful before submitting a new version of the active data pipeline. With this approach, the snapshot will halt the ongoing job after preserving its current state.
+NOTE: By configuring the 'spec.cancelJob' field to 'true', the data pipeline named 'transaction-v1' will be canceled after applying the JetJobSnapshot. This setting is particularly useful before submitting a new version of the active data pipeline. With this approach, the snapshot will halt the ongoing job after preserving its current state.
 
 
 . The data pipeline should not be in the Running state anymore. You can verify this by using the following command:
@@ -216,9 +213,9 @@ NOTE: By configuring the 'spec.cancelJob' field to 'true', the data pipeline nam
 +
 [source, shell]
 ----
-$ kubectl get jetjob job-transaction-v1
-NAME                 STATUS            ID                   SUBMISSIONTIME         COMPLETIONTIME
-job-transaction-v1   ExecutionFailed   741632319877545985   2023-08-09T12:22:04Z   2023-08-09T13:07:51Z
+$ kubectl get jetjob transaction-v1
+NAME             STATUS            ID                   SUBMISSIONTIME         COMPLETIONTIME
+transaction-v1   ExecutionFailed   741632319877545985   2023-08-09T12:22:04Z   2023-08-09T13:07:51Z
 ----
 
 == Step 4. Submit Job initialized from Snapshot
@@ -259,33 +256,32 @@ cat <<EOF | kubectl apply -f -
 apiVersion: hazelcast.com/v1alpha1
 kind: JetJob
 metadata:
-  name: job-transaction-v2
-spec:
   name: transaction-v2
+spec:
   hazelcastResourceName: hazelcast
   state: Running
   jarName: jet-pipelines-1.0-SNAPSHOT.jar
   mainClass: org.examples.jet.snapshot.JobV2
-  initialSnapshotResourceName: snapshot-transaction
+  initialSnapshotResourceName: transaction
   bucketConfig:
     bucketURI: '<BUCKET-URI>'
     secretName: '<SECRET-NAME>'
 EOF
 ----
 
-This data pipeline, named 'job-transaction-v2', will seamlessly resume processing entries from the state at which we exported the snapshot. In this way, we achieve to process each transaction entries only once within the pipeline.
+This data pipeline, named 'transaction-v2', will seamlessly resume processing entries from the state at which we exported the snapshot. In this way, we achieve to process each transaction entries only once within the pipeline.
 
 . Now check the new Jet job status
 
 +
 [source, shell]
 ----
-$ kubectl get jetjob job-transaction-v2
-NAME                 STATUS    ID                   SUBMISSIONTIME         COMPLETIONTIME
-job-transaction-v2   Running   741650518446702593   2023-08-09T13:34:22Z
+$ kubectl get jetjob transaction-v2
+NAME             STATUS    ID                   SUBMISSIONTIME         COMPLETIONTIME
+transaction-v2   Running   741650518446702593   2023-08-09T13:34:22Z
 ----
 
-When you review the logs after submitting the pipeline, you will see the logs of only the transaction entries which are put after the time when we exported the Snapshot. Which means the new version of the transaction pipeline, named ''job-transaction-v2', won't executes the transactions which are already executed by the first version of the pipeline named ''job-transaction-v1'.
+When you review the logs after submitting the pipeline, you will see the logs of only the transaction entries which are put after the time when we exported the Snapshot. Which means the new version of the transaction pipeline, named 'transaction-v2', won't executes the transactions which are already executed by the first version of the pipeline named 'transaction-v1'.
 
 [source, yaml]
 ----
@@ -295,7 +291,7 @@ The transaction 'transaction-5' is being executed in 'job-v2'
 {"time":"2023-08-09T12:47:53,791", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v2/Log Transactions#0] [Job V2] transaction:'transaction-5' payload:'{\"description\": \"Gasoline Refill\", \"amount\": 50.30, \"transactionDate\": \"2023-08-13T09:00:00Z\"}' "}
 ----
 
-If the new version of the Data Pipeline, named 'job-transaction-v2', is not initialized from the exported Snapshot 'snapshot-transaction', it will begin data processing from the start of the map. This is undesirable, as we have already processed certain transaction entries in the previous version of the pipeline.
+If the new version of the Data Pipeline, named 'transaction-v2', is not initialized from the exported Snapshot 'transaction', it will begin data processing from the start of the map. This is undesirable, as we have already processed certain transaction entries in the previous version of the pipeline.
 
 NOTE: If want to make your Snapshots to be persistent against outages or restarts, it would be enough to create a Hazelcast cluster with persistence enabled.
 
