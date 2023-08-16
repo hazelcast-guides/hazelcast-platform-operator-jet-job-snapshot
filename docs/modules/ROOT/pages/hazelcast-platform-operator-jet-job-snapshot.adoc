@@ -67,8 +67,8 @@ spec:
     resourceUploadEnabled: true
 EOF
 ----
-+
 
++
 NOTE: If you want to explicitly specify the Hazelcast version, it's important to note that you should use Hazelcast Enterprise version 5.3 or above for submitting JetJobs using the Hazelcast Platform Operator.
 
 . Now, verify the cluster's status to ensure that it is up and running.
@@ -294,6 +294,18 @@ The transaction 'transaction-5' is being executed in 'job-v2'
 If the new version of the Jet Job, named 'transaction-v2', is not initialized from the exported Snapshot 'transaction', it will begin data processing from the start of the map. This is undesirable, as we have already processed certain transaction entries in the previous version of the pipeline.
 
 NOTE: If want to make your Snapshots to be persistent against outages or restarts, it would be enough to create a Hazelcast cluster with persistence enabled.
+
+== Step 4. Cleaning Up
+
+To clean up all the resources you created during the tutorial, and to remove the custom resources and secrets, run the following command:
+
+[source, shell]
+----
+kubectl delete $(kubectl get hazelcast -o name)
+kubectl delete secret hazelcast-license-key
+----
+
+NOTE: Deleting the Hazelcast CR will also delete the Jet Jobs and Jet Job Snapshots linked to it.
 
 == Summary
 
