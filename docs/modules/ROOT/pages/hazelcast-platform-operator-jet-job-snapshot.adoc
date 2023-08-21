@@ -52,7 +52,7 @@ kubectl create secret generic hazelcast-license-key --from-literal=license-key=<
 [source, yaml]
 ----
 kubectl apply -f - <<EOF
-include::ROOT:example$/hazelcast.yaml[]
+include::ROOT:example$/hz.yaml[]
 EOF
 ----
 
