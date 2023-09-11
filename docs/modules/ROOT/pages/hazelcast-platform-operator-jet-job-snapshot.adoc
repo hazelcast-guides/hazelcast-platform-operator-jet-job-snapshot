@@ -95,7 +95,6 @@ You are all set to submit the Jet Job that processes transactions from the map. 
 [source, java]
 ----
 include::ROOT:example$/jet-pipelines/src/main/java/org/examples/jet/snapshot/JobV1.java[]
-}
 ----
 
 . Run the following command to submit the Jet Job.
