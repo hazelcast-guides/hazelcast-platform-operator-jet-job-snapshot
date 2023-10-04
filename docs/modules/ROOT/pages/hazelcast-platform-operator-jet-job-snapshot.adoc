@@ -65,7 +65,7 @@ NOTE: If you want to explicitly specify the Hazelcast version, it's important to
 [source, shell]
 ----
 $ kubectl get hazelcast hazelcast
-NAME        STATUS    MEMBERS   EXTERNAL-ADDRESSES   WAN-ADDRESSES
+NAME        STATUS    MEMBERS
 hazelcast   Running   1/1
 ----
 
