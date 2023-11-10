@@ -66,7 +66,7 @@ NOTE: If you want to explicitly specify the Hazelcast version, it's important to
 ----
 $ kubectl get hazelcast hazelcast
 NAME        STATUS    MEMBERS
-hazelcast   Running   1/1
+hazelcast   Running   3/3
 ----
 
 == Step 2. Run the Data Pipeline
@@ -123,11 +123,9 @@ As new entries are added to the 'transaction' map, the Jet Job will automaticall
 +
 [source, yaml]
 ----
-The transaction 'transaction-1' is being executed in 'job-v1'
-{"time":"2023-08-09T12:24:59,753", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v1/Log Transactions#0] [Job V1] transaction:'transaction-1' payload:'{\"description\": \"Online Purchase\", \"amount\": 75.99, \"transactionDate\": \"2023-08-09T15:30:00Z\"}' "}
-The transaction 'transaction-2' is being executed in 'job-v1'
-{"time":"2023-08-09T12:33:32,784", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v1/Log Transactions#0] [Job V1] transaction:'transaction-2' payload:'{\"description\": \"Grocery Shopping\", \"amount\": 42.75, \"transactionDate\": \"2023-08-10T10:15:00Z\"}' "}
-The transaction 'transaction-3' is being executed in 'job-v1'
+$ kubectl logs -l app.kubernetes.io/name=hazelcast -c hazelcast | grep transaction-v1/Log
+{"time":"2023-08-09T12:24:59,753", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v1/Log Transactions#1] [Job V1] transaction:'transaction-1' payload:'{\"description\": \"Online Purchase\", \"amount\": 75.99, \"transactionDate\": \"2023-08-09T15:30:00Z\"}' "}
+{"time":"2023-08-09T12:33:32,784", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v1/Log Transactions#2] [Job V1] transaction:'transaction-2' payload:'{\"description\": \"Grocery Shopping\", \"amount\": 42.75, \"transactionDate\": \"2023-08-10T10:15:00Z\"}' "}
 {"time":"2023-08-09T12:33:44,997", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v1/Log Transactions#0] [Job V1] transaction:'transaction-3' payload:'{\"description\": \"Restaurant Dinner\", \"amount\": 120.50, \"transactionDate\": \"2023-08-11T20:00:00Z\"}' "}
 ----
 
@@ -210,9 +208,8 @@ When you review the logs after submitting the pipeline, you will see the logs of
 +
 [source, yaml]
 ----
-The transaction 'transaction-4' is being executed in 'job-v2'
-{"time":"2023-08-09T12:45:11,364", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v2/Log Transactions#0] [Job V2] transaction:'transaction-4' payload:'{\"description\": \"Movie Tickets\", \"amount\": 25.00, \"transactionDate\": \"2023-08-12T18:45:00Z\"}' "}
-The transaction 'transaction-5' is being executed in 'job-v2'
+$ kubectl logs -l app.kubernetes.io/name=hazelcast -c hazelcast | grep transaction-v2/Log
+{"time":"2023-08-09T12:45:11,364", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v2/Log Transactions#1] [Job V2] transaction:'transaction-4' payload:'{\"description\": \"Movie Tickets\", \"amount\": 25.00, \"transactionDate\": \"2023-08-12T18:45:00Z\"}' "}
 {"time":"2023-08-09T12:47:53,791", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v2/Log Transactions#0] [Job V2] transaction:'transaction-5' payload:'{\"description\": \"Gasoline Refill\", \"amount\": 50.30, \"transactionDate\": \"2023-08-13T09:00:00Z\"}' "}
 ----
 
@@ -222,7 +219,7 @@ If the new version of the Jet Job, named 'transaction-v2', is not initialized fr
 +
 NOTE: If want to make your Snapshots to be persistent against outages or restarts, it would be enough to create a Hazelcast cluster with persistence enabled.
 
-== Step 4. Cleaning Up
+== Step 5. Cleaning Up
 
 To clean up all the resources you created during the tutorial, and to remove the custom resources and secrets, run the following command:
 
