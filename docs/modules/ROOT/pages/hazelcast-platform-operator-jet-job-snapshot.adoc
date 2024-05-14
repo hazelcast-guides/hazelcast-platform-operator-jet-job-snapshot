@@ -29,7 +29,7 @@ Make sure you have the following:
 * Running https://kubernetes.io/[Kubernetes] cluster
 * Kubernetes command-line tool, https://kubernetes.io/docs/tasks/tools/#kubectl[kubectl]
 * Maven command-line tool, https://maven.apache.org/download.cgi[mvn]
-* Deployed xref:operator:ROOT:index.adoc[Hazelcast Platform Operator version 5.8 or above]
+* Deployed xref:operator:ROOT:get-started.adoc[Hazelcast Platform Operator version 5.8 or above]
 * Blob storage and access credentials on one of the following cloud providers: https://aws.amazon.com/s3/[AWS], https://cloud.google.com/storage/[GCP], https://azure.microsoft.com/en-us/services/storage/blobs/[Azure]
 
 If you're unsure about how to submit JetJobs using the Hazelcast Platform Operator, it's recommended to start by following the xref:tutorials:ROOT:hazelcast-platform-operator-jet.adoc[Jet] tutorial first. That tutorial also covers the steps for deploying a custom Jet pipeline JAR to Cloud storage and provides guidance on managing JetJob resources using the Hazelcast Platform Operator.
@@ -49,7 +49,7 @@ kubectl create secret generic hazelcast-license-key --from-literal=license-key=<
 . Run the following command to create a Hazelcast cluster with the Jet engine configured.
 
 +
-[source, yaml]
+[source, shell]
 ----
 kubectl apply -f - <<EOF
 include::ROOT:example$/hz.yaml[]
@@ -78,7 +78,7 @@ Before submitting the Jet Job, you need to create a map from which the Jet Job w
 . Execute the following command to create the Map, which will serve as the source for the Jet Job.
 
 +
-[source, yaml]
+[source, shell]
 ----
 kubectl apply -f - <<EOF
 include::ROOT:example$/map.yaml[]
@@ -89,7 +89,7 @@ EOF
 NOTE: It is important to configure the event journal in the map if it is being used as a data source for a Data Pipeline.
 
 +
-You are all set to submit the Jet Job that processes transactions from the map. Below is the Java source code for the pipeline we've created in this tutorial. This pipeline simply retrieves transaction entries from the map and logs them for the sake of simplicity. If you are unfamiliar with submitting JetJobs with the Hazelcast Platform Operator, you can also refer to xref:tutorials:ROOT:hazelcast-platform-operator-jet.adoc[Jet Tutorial].
+You are all set to submit the Jet Job that processes transactions from the map. Below is the Java source code for the pipeline. This pipeline simply retrieves transaction entries from the map and logs them for the sake of simplicity. The code should be packaged and deployed to cloud storage. If you are unfamiliar with submitting JetJobs with the Hazelcast Platform Operator, you can also refer to xref:tutorials:ROOT:hazelcast-platform-operator-jet.adoc[Jet Tutorial].
 
 +
 [source, java]
@@ -100,7 +100,7 @@ include::ROOT:example$/jet-pipelines/src/main/java/org/examples/jet/snapshot/Job
 . Run the following command to submit the Jet Job.
 
 +
-[source, yaml]
+[source, shell]
 ----
 kubectl apply -f - <<EOF
 include::ROOT:example$/job-v1.yaml[]
@@ -121,12 +121,12 @@ transaction-v1   Running   741632319877545985   2023-08-09T12:22:04Z
 As new entries are added to the 'transaction' map, the Jet Job will automatically retrieve and process them. To observe the executed transactions, examine the logs. In the provided log example below, three transactions are processed with keys 'transaction-1', 'transaction-2', and 'transaction-3'. The entry values are not a concern in this context.
 
 +
-[source, yaml]
+[source, shell]
 ----
 $ kubectl logs -l app.kubernetes.io/name=hazelcast -c hazelcast | grep transaction-v1/Log
-{"time":"2023-08-09T12:24:59,753", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v1/Log Transactions#1] [Job V1] transaction:'transaction-1' payload:'{\"description\": \"Online Purchase\", \"amount\": 75.99, \"transactionDate\": \"2023-08-09T15:30:00Z\"}' "}
-{"time":"2023-08-09T12:33:32,784", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v1/Log Transactions#2] [Job V1] transaction:'transaction-2' payload:'{\"description\": \"Grocery Shopping\", \"amount\": 42.75, \"transactionDate\": \"2023-08-10T10:15:00Z\"}' "}
-{"time":"2023-08-09T12:33:44,997", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v1/Log Transactions#0] [Job V1] transaction:'transaction-3' payload:'{\"description\": \"Restaurant Dinner\", \"amount\": 120.50, \"transactionDate\": \"2023-08-11T20:00:00Z\"}' "}
+{"time":"2023-08-09T12:24:59,753", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.4.0] [transaction-v1/Log Transactions#1] [Job V1] transaction:'transaction-1' payload:'{\"description\": \"Online Purchase\", \"amount\": 75.99, \"transactionDate\": \"2023-08-09T15:30:00Z\"}' "}
+{"time":"2023-08-09T12:33:32,784", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.4.0] [transaction-v1/Log Transactions#2] [Job V1] transaction:'transaction-2' payload:'{\"description\": \"Grocery Shopping\", \"amount\": 42.75, \"transactionDate\": \"2023-08-10T10:15:00Z\"}' "}
+{"time":"2023-08-09T12:33:44,997", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.4.0] [transaction-v1/Log Transactions#0] [Job V1] transaction:'transaction-3' payload:'{\"description\": \"Restaurant Dinner\", \"amount\": 120.50, \"transactionDate\": \"2023-08-11T20:00:00Z\"}' "}
 ----
 
 == Step 3. Save the state of the Data Pipeline
@@ -136,7 +136,7 @@ In data pipelines, saving and using computation process states is vital for accu
 . Run the following command to export a Snapshot from the Jet Job.
 
 +
-[source, yaml]
+[source, shell]
 ----
 kubectl apply -f - <<EOF
 include::ROOT:example$/snapshot.yaml[]
@@ -182,7 +182,7 @@ include::ROOT:example$/jet-pipelines/src/main/java/org/examples/jet/snapshot/Job
 . Differing from the previous JetJob definition, we will set the 'initialSnapshotResourceName' field to refer to the Snapshot exported in the preceding step. Execute the following command to submit the new Jet Job.
 
 +
-[source, yaml]
+[source, shell]
 ----
 kubectl apply -f - <<EOF
 include::ROOT:example$/job-v2.yaml[]
@@ -206,11 +206,11 @@ transaction-v2   Running   741650518446702593   2023-08-09T13:34:22Z
 When you review the logs after submitting the pipeline, you will see the logs of only the transaction entries which are put after the time when we exported the Snapshot. Which means the new version of the transaction pipeline, named 'transaction-v2', won't executes the transactions which are already executed by the first version of the pipeline named 'transaction-v1'.
 
 +
-[source, yaml]
+[source, shell]
 ----
 $ kubectl logs -l app.kubernetes.io/name=hazelcast -c hazelcast | grep transaction-v2/Log
-{"time":"2023-08-09T12:45:11,364", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v2/Log Transactions#1] [Job V2] transaction:'transaction-4' payload:'{\"description\": \"Movie Tickets\", \"amount\": 25.00, \"transactionDate\": \"2023-08-12T18:45:00Z\"}' "}
-{"time":"2023-08-09T12:47:53,791", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.3.0] [transaction-v2/Log Transactions#0] [Job V2] transaction:'transaction-5' payload:'{\"description\": \"Gasoline Refill\", \"amount\": 50.30, \"transactionDate\": \"2023-08-13T09:00:00Z\"}' "}
+{"time":"2023-08-09T12:45:11,364", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.4.0] [transaction-v2/Log Transactions#1] [Job V2] transaction:'transaction-4' payload:'{\"description\": \"Movie Tickets\", \"amount\": 25.00, \"transactionDate\": \"2023-08-12T18:45:00Z\"}' "}
+{"time":"2023-08-09T12:47:53,791", "logger": "com.hazelcast.jet.impl.connector.WriteLoggerP", "level": "INFO", "msg": "[10.36.0.10]:5702 [dev] [5.4.0] [transaction-v2/Log Transactions#0] [Job V2] transaction:'transaction-5' payload:'{\"description\": \"Gasoline Refill\", \"amount\": 50.30, \"transactionDate\": \"2023-08-13T09:00:00Z\"}' "}
 ----
 
 +
