@@ -3,7 +3,6 @@
 :page-product: operator
 :page-categories: Cloud Native
 :page-lang: go, java, node, python
-:page-enterprise: true
 :page-est-time: 10 mins
 :github-directory: https://github.com/hazelcast-guides/hazelcast-platform-operator-jet-job-snapshot
 :description: Learn how to save the state of your data pipelines and initiate a data pipeline from an existing state using the Hazelcast Platform Operator.
